@@ -3,6 +3,13 @@
 Now that we know how to build complex, nested view chains, it's time to render
 information based on data set on our models.
 
+## What are models?
+
+[Backbone models](https://backbonejs.org/#Model) are an extremely powerful tool
+that link your application to your server. The model is able to synchronize data
+to and from your server, perform logic, and be rendered in fields. As Marionette
+focuses on the view/routing layers, we'll start by using models to render data.
+
 ## Creating a Model
 
 There are two ways to do this:
@@ -169,3 +176,37 @@ Now let's modify our `hello.html` template to call the helper:
 ```
 
 This gives us the same output as using a model default.
+
+#### Which do I use?
+
+In truth, template helpers and model defaults are best suited for different
+purposes. Model defaults are best used when server synchronization, sharing
+data, and performing business logic that depends on those fields being defined.
+For example, you could set a quantity field that defaults to 1.
+
+Template helpers are best used when you want to handle rendering to a specific
+view. If you find yourself writing lots of helpers like the `get` example above,
+it might be better to set it as a default. A good example of a template helper
+could be setting a span class based on model data:
+
+```js
+templateHelpers: {
+  isPositive: function(value) {
+    if (value > 0) {
+      return 'color-green';
+    }
+    else if (value < 0) {
+      return 'color-red';
+    }
+    return 'color-yellow';
+  }
+}
+```
+
+You can also attach pre-existing functions to template helpers - it's just a
+JavaScript object.
+
+## What next?
+
+Now that you have a basic understanding of how to render data from model fields,
+with a few different strategies for handling use cases.

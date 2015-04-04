@@ -33,4 +33,5 @@ The tutorial structure is as follows:
   7. Handling user input and events
   8. Routing and controllers
   9. Behaviors, what they are and how to use them
-  10. Wrapping up and further reading
+  10. Integration with a server
+  11. Wrapping up and further reading
