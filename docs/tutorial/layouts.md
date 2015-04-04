@@ -208,7 +208,7 @@ var App = Marionette.Application.extend({
       }
     });
 
-    var hello = new HelloView():
+    var hello = new HelloView();
 
     regions.get('hello').show(hello);
   }
