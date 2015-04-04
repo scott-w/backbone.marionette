@@ -123,9 +123,9 @@ This might seem like a lot of code to just render an extra `<p>` - but we can
 use this to render lots of different types of views in a hierarchy. For example,
 we can embed lists built from collections of data, or bind different types of
 views to different data models. We'll discover more about
-[tying Backbone models to views](./backbone.md) shortly.
+[tying Backbone models to views](./models.md) shortly.
 
-### Customising views
+### Customizing views
 
 When we create views inside regions, Marionette will create a new `<div>` tag
 to place the template inside. If we want to customize it, we can do this by
@@ -148,4 +148,112 @@ var GoodbyeView = Marionette.LayoutView.extend({
 ```
 
 Now when you build the app and inspect the HTML, you'll see one less `<div>` in
-the rendered output.
+the rendered output and the `<p>` tag will have the class we set.
+
+## Chaining Layouts
+
+As you can see, we used another `LayoutView` for our `GoodbyeView`. Does that
+mean we can set a `regions` hash on that? Yes, we can! Let's do it. This time,
+we'll just modify the view inside the same `goodbye.js` file:
+
+```js
+var MiddleView = Marionette.LayoutView.extend({
+  template: require('./hello.html')
+});
+
+
+var GoodbyeView = Marionette.LayoutView.extend({
+  template: require('./goodbye.html'),
+
+  regions: {
+    middle: '.middle-hook'
+  },
+
+  onShow: function() {
+    var middleView = new MiddleView():
+    this.middle.show(middleView);
+  }
+})
+```
+
+To keep it simple, I've just re-referenced the initial `hello.html` template.
+
+We've removed the `tagName` as we're going back to building a more complex view,
+so our `goodbye.html` could look like:
+
+```html
+<div class="middle-hook"></div>
+<p class="goodbye-message">Goodbye world, I'll miss you!</p>
+```
+
+Now when we build and refresh the page, we'll see the contents of the
+`MiddleView` rendered above the `GoodbyeView`.
+
+## Regions everywhere
+
+You'll notice that sometimes we call `render()`, sometimes we call `show()` and
+we set different event handlers. This is a little inconsistent, can't we just
+use the region manager pattern everywhere? Actually, we can! Marionette lets us
+create our own `RegionManager` classes for handling just this case.
+
+Let's go back to our top-level application and use a region manager to handle
+the initial rendering in `app.js`:
+
+```js
+var App = Marionette.Application.extend({
+  onStart: function(options) {
+    var regions = new Marionette.RegionManager({
+      regions: {
+        hello: '#view-hook'
+      }
+    });
+
+    var hello = new HelloView():
+
+    regions.get('hello').show(hello);
+  }
+});
+```
+
+We also need to modify `HelloView` so it no longer handles its own `el`:
+
+```js
+var HelloView = Marionette.LayoutView.extend({
+  template: require('./hello.html'),
+
+  regions: {
+    goodbye: '#goodbye-hook'
+  },
+
+  onShow: function() {
+    var goodbyeView = new GoodbyeView();
+    this.goodbye.show(goodbyeView);
+  }
+});
+```
+
+This gives us two benefits:
+  1. We consistently use `onShow` and only use `onRender` where we absolutely
+    must.
+  2. We can re-use `HelloView` in other views and attach it to different
+    elements - we no longer rely on `#view-hook` being in the DOM.
+
+### What's the difference between `onShow` and `onRender`?
+
+`onShow` is only called when the view is attached to the region manager with
+`show(view)`, whereas `onRender` is called every time the DOM has to be
+re-rendered. This means `onRender` can get called a lot when you have an
+attached model or collection that changes frequently. This will make your
+application faster as it gets larger and more complex.
+
+
+## What's next?
+
+That should cover the basics for managing your views. You should understand the
+principles of managing regions and why it's a great thing to do. You should
+familiarize yourself with the concepts, try adding extra regions and keep
+nesting your layouts until you're comfortable with creating layouts and nesting
+them.
+
+When you're ready, let's move onto
+[tying Backbone models to views](./models.md).
