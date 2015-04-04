@@ -80,10 +80,12 @@ var GoodbyeView = Marionette.LayoutView.extend({
 module.exports = GoodbyeView;
 ```
 
-And create a template file called `goodbye.html`:
+You'll notice that we don't set `el` here - this will be created for us by the
+`LayoutView` when we render it. Our next step is to create a template file
+called `goodbye.html`:
 
 ```html
-<p>Goodbye, world! I'll miss you!</p>
+<p class="goodbye-message">Goodbye, world! I'll miss you!</p>
 ```
 
 Let's go back to our `hello.html` template and tell it where we're going to want
@@ -118,7 +120,32 @@ var HelloView = Marionette.LayoutView.extend({
 ```
 
 This might seem like a lot of code to just render an extra `<p>` - but we can
-use this to render lots of different types of views. For example, we can embed
-lists built from collections of data, or bind different types of views to
-different data models. We'll discover more about
+use this to render lots of different types of views in a hierarchy. For example,
+we can embed lists built from collections of data, or bind different types of
+views to different data models. We'll discover more about
 [tying Backbone models to views](./backbone.md) shortly.
+
+### Customising views
+
+When we create views inside regions, Marionette will create a new `<div>` tag
+to place the template inside. If we want to customize it, we can do this by
+setting attributes on the view itself. Let's take the `<p>` tags out of the
+template and have the `GoodbyeView` render them. Our `goodbye.html` template is
+now:
+
+```html
+Goodbye world, I'll miss you!
+```
+
+and our GoodbyeView is modified to look like:
+
+```js
+var GoodbyeView = Marionette.LayoutView.extend({
+  tagName: 'p',
+  className: 'goodbye-message',
+  template: require('./goodbye.html')
+});
+```
+
+Now when you build the app and inspect the HTML, you'll see one less `<div>` in
+the rendered output.
