@@ -65,3 +65,107 @@ see that the names correspond exactly to the fields set on the model.
 
 You'll notice that if you reference a field that's not set then you won't be
 able to compile the template or the app.
+
+We can mitigate this a couple of ways:
+  1. Model defaults
+  2. Template helpers
+
+#### Model defaults
+
+Let's first do it at the model level by setting some defaults. Create a file at
+`app/models/person.js`:
+
+```js
+var Backbone = require('backbone');
+
+var Person = Backbone.Model.extend({
+  defaults: {
+    first_name: '',
+    last_name: '',
+    nickname: 'Nobody'
+  }
+});
+
+module.exports = Person;
+```
+
+Now let's go back to our `app.js` file and use the new `Person` model:
+
+```js
+var Person = require('./models/person');
+
+var HelloView = require('./layout');
+
+var appData = {
+  first_name: 'John',
+  last_name: 'Smith'
+};
+
+
+var App = Marionette.Application.extend({
+  onStart: function(options) {
+    var regions = new Marionette.RegionManager({
+      regions: {
+        hello: '#view-hook'
+      }
+    });
+
+    var modelData = new Person(options.appData);
+
+    var hello = new HelloView({model: modelData});
+
+    regions.get('hello').show(hello);
+  }
+});
+```
+
+Just to prove it works, we'll modify our template to refer to people by their
+nickname:
+
+```html
+<p>Hello, <%- nickname %>!</p>
+<div id="goodbye-hook"></div>
+```
+
+Now you can see the default value set from our Model. Where default fields match
+data attributes, obviously the data set takes priority.
+
+#### Using template helpers
+
+Alternatively, we could use a template helper to check for the existence of an
+attribute and return a default value if it doesn't exist. Let's open our
+`layout.js` file and modify the `HelloView`:
+
+```js
+var HelloView = Marionette.LayoutView.extend({
+  template: require('./hello.html'),
+
+  regions: {
+    goodbye: '#goodbye-hook'
+  },
+
+  onShow: function() {
+    var goodbyeView = new GoodbyeView();
+    this.goodbye.show(goodbyeView);
+  },
+
+  templateHelpers: function() {
+    var model = this.model;
+
+    return {
+      get: function(name, default) {
+        return model.get(name) || default || '';
+      }
+    };
+  }
+});
+```
+
+Now let's modify our `hello.html` template to call the helper:
+
+```html
+<p>Hello, <%- get(nickname, 'Nobody') %>!</p>
+<div id="goodbye-hook"></div>
+```
+
+This gives us the same output as using a model default.
