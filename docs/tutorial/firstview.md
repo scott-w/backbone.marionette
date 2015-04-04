@@ -20,7 +20,7 @@ marionette-tutorial/
 |-- index.html
 |-- app/
 |    |-- app.js
-|    |-- template.html
+|    |-- hello.html
 |-- static/
 |    |-- js/
 ```
@@ -55,14 +55,14 @@ var Marionette = require('backbone.marionette');  // 2.
 
 var HelloWorld = Marionette.LayoutView.extend({  // 3.
   el: '#view-hook',  // 4.
-  template: require('./template.html')  // 5.
+  template: require('./hello.html')  // 5.
 });
 
 var hello = new HelloWorld();  // 6.
 hello.render();  // 7.
 ```
 
-Now open up `template.html` and create an HTML template:
+Now open up `hello.html` and create an HTML template:
 
 ```html
 <p>Hello, world!</p>
@@ -109,4 +109,4 @@ much nicer or we can just build our entire page using JavaScript templates.
 Also try mixing and matching JavaScript templates and pre-rendered HTML.
 
 When you're ready, let's start organizing some of this by using the power
-of [`LayoutView` and `Application`](./layouts.md˜).
+of [`LayoutView` and `Application`](./layouts.md).
