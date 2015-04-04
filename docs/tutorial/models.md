@@ -39,7 +39,7 @@ var App = Marionette.Application.extend({
       }
     });
 
-    var modelData = new Backbone.Model(options.appData);
+    var modelData = new Backbone.Model(options.data);
 
     var hello = new HelloView({model: modelData});
 
@@ -209,4 +209,9 @@ JavaScript object.
 ## What next?
 
 Now that you have a basic understanding of how to render data from model fields,
-with a few different strategies for handling use cases.
+with a couple of strategies for handling different use cases. You should be able
+to use different template helpers to render text based on your model data.
+
+When you're comfortable, we can either;
+  1. Move on to more [complex views with collections](./collections.md)
+  2. Start [handling user input and updating your model](./events.md)
