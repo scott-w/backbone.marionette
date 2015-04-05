@@ -70,7 +70,7 @@ var HelloView = require('./layout');
 
 var modelData = {
   first_name: 'John',
-  last_name: 'Smith'
+  last_name: 'Jones'
 };
 
 var listData = [
@@ -150,4 +150,116 @@ powerful view that lets us wrap a template around the list and attach a model.
 
 Our next extension will be a fairly complex set of views that displays a table
 of people with a footer telling us what the most common first name in the list
-was.
+was. We'll pre-calculate the first name in the model and just pretend it came
+from the server.
+
+Let's start at our `app.js` and add a couple more items to the array:
+
+```js
+var listData = [
+  {
+    first_name: 'Dave',
+    last_name: 'Jones'
+  },
+  {
+    first_name: 'Steve',
+    last_name: 'Hansen'
+  },
+  {
+    first_name: 'John',
+    last_name: 'Jones'
+  },
+  {
+    first_name: 'John',
+    last_name: 'Smith'
+  }
+]
+```
+
+Now let's open up our `personlist.js` file and convert it to a `CompositeView`:
+
+```js
+var Marionette = require('backbone.marionette');
+
+var PersonView = Marionette.LayoutView.extend({
+  tagName: 'tr',
+  template: require('./templates/person.html')
+});
+
+
+var PersonList = Marionette.CollectionView.extend({
+  tagName: 'table',
+  template: require('./templates/personlist.html'),
+  childView: PersonView,
+  childViewContainer: 'tbody'
+});
+```
+
+Now we create a `templates/personlist.html` file that looks like:
+
+```html
+<thead>
+  <tr>
+    <th>First Name</th>
+    <th>Last Name</th>
+  </tr>
+</thead>
+<tbody></tbody>
+<tfoot>
+  <tr>
+    <th scope="row">Common first name</th>
+    <td><%- first_name %></td>
+  </tr>
+</tfoot>
+```
+
+Next we update our `templates/person.html` so it looks like a table row:
+
+```html
+<td><%- first_name %></td>
+<td><%- last_name %></td>
+```
+
+Finally, when we create the new `CompositeView` we must also pass in our model,
+or the template will fail to render. In `hello.js`:
+
+```js
+var PersonView = require('./personlist');
+
+
+var HelloView = Marionette.LayoutView.extend({
+  template: require('./hello.html'),
+
+  regions: {
+    goodbye: '#goodbye-hook',
+    greetings: '#greeting-hook'
+  },
+
+  onShow: function() {
+    var goodbyeView = new GoodbyeView();
+    var personView = new PersonView({
+      collection: this.collection,
+      model: this.model
+    });
+
+    this.goodbye.show(goodbyeView);
+    this.greetings.show(personView);
+  }
+});
+```
+
+Now your template should render nicely.
+
+### Why would I use this?
+
+Apart from the obvious case of constructing a table another use case is, when
+your data is attached to a server, to use the model to store aggregate data
+(sums, counters, etc.) and let the collection store the current page of data in
+a very long report.
+
+## What next
+
+Now we look to implement
+[event handling so we can deal with user input](./events.md), and have
+our model-and-collection-backed views respond to changes in the data they are
+watching.
