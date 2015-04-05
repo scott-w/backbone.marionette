@@ -141,3 +141,13 @@ var HelloView = Marionette.LayoutView.extend({
 ```
 
 Now your template should render a list of greetings to people in the list.
+
+## Rendering Tables
+
+You've probably realized that this approach won't work if you want to render the
+rows in a table. For this purpose we have a `CompositeView` - a much more
+powerful view that lets us wrap a template around the list and attach a model.
+
+Our next extension will be a fairly complex set of views that displays a table
+of people with a footer telling us what the most common first name in the list
+was.
