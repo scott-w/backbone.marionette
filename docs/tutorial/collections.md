@@ -48,6 +48,8 @@ var PersonList = Marionette.CollectionView.extend({
   tagName: 'ul',
   childView: PersonView
 });
+
+module.exports = PersonList;
 ```
 
 We just need a template to render in `templates/person.html`:
@@ -187,12 +189,14 @@ var PersonView = Marionette.LayoutView.extend({
 });
 
 
-var PersonList = Marionette.CollectionView.extend({
+var PersonList = Marionette.CompositeView.extend({
   tagName: 'table',
   template: require('./templates/personlist.html'),
   childView: PersonView,
   childViewContainer: 'tbody'
 });
+
+module.exports = PersonList;
 ```
 
 Now we create a `templates/personlist.html` file that looks like:
