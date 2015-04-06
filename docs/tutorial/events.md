@@ -241,6 +241,11 @@ We've added two concepts here:
   1. We've attached the `modelEvents` to a custom method call
   2. We added a ui hash
 
+#### What about collections?
+
+Marionette also listens to a hash called `collectionEvents` if we attach a
+collection to the view. It works exactly the same way as `modelEvents`.
+
 #### The ui hash
 
 The `ui` hash is a named mapping to jQuery selectors in the view. We can
@@ -292,3 +297,9 @@ var PersonView = Marionette.LayoutView.extend({
 First we've bound a `ui` key to the button we're interested in and now we've
 referenced that key in our triggers. This allows us to hide the details of what
 `button` actually is and just focus on the logic of what we want to do with it.
+
+## What next?
+
+Now that you can compose some pretty complex event handling logic, let's move on
+to one of the key parts of building a single-page app -
+[the AppRouter](./routers.md).
