@@ -247,3 +247,48 @@ The `ui` hash is a named mapping to jQuery selectors in the view. We can
 reference the `click-count` class we set earlier from `this.ui` and we can
 treat it as any other jQuery selector by calling methods on it. In this case,
 we set the text attribute to the value we just set on the model.
+
+## More specific triggers
+
+So far we've attached the triggers to the view's `el`, but what if we want to
+respond to a button click? Let's give it a try and start by updating our
+`person.html` template:
+
+```html
+<td><%- first_name %></td>
+<td><%- last_name %></td>
+<td class="click-count">
+  <%- click_count %>
+
+  <button class="btn-click" type="button">Click Here</button>
+</td>
+```
+
+Let's open up our `PersonView` again and modify the trigger hash:
+
+```js
+var PersonView = Marionette.LayoutView.extend({
+  tagName: 'tr',
+  template: require('./templates/person.html'),
+
+  modelEvents: {
+    'change:click_count': 'render'
+  },
+
+  ui: {
+    button: '.btn-click'
+  },
+
+  triggers: {
+    'click @ui.button': 'click:item'
+  },
+
+  onClickItem: function(options) {
+    var counter = options.model.get('click_count');
+    options.model.set(counter + 1);
+  }
+```
+
+First we've bound a `ui` key to the button we're interested in and now we've
+referenced that key in our triggers. This allows us to hide the details of what
+`button` actually is and just focus on the logic of what we want to do with it.
