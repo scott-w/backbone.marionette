@@ -11,24 +11,44 @@ to URLs as they come in.
 Web frameworks in most languages include a routing system - Django's `urls.py`
 and Flask's route decorators are two prominent examples of different styles.
 
-The approach taken by Backbone and Marionette is slightly different, reflecting
-nature of existing state in client-side applications. So, how and why do we use
+The approach taken by Backbone and Marionette is slightly different, reflecting the
+nature of existing state in client applications. So how and why do we use
 routing?
 
 The purpose of the router is to restore state on page load with help from the
 browser's `window.location` property. We can either construct the state directly
 from the URL or we can use it to start pulling extra data from the server. In
-our tutorial, we'll construct information from the URL directly.
+our tutorial, we'll use the URL to locate data already in our client.
 
 We use `Backbone.history` to set points to restore from later. If we wanted to
 build a single-page app, we can use the Router and History to setup a
-navigate-able system. A common example could be `/items` list where clicking an
-item would navigate to `/items/id` and render the item we just clicked.
+navigate-able system. A common example could be `#items` list where clicking an
+item would navigate to `#items/id` and render the item we just clicked.
 
 ## A simpler app
 
 We've really stretched the hello world as far as we can take it, so we're going
-to cut it back a little to make it easier to demo the router features.
+to cut it back a little to make it easier to demo the router features. The
+biggest change we'll make is to use a single layout to manage all of our views.
+We'll also assume that we have pre-written all the templates that we're going
+to render.
+
+Our application structure will look like:
+
+```
+app/
+ |-- app.js
+ |-- router.js
+ |-- collections/
+ |    |-- person.js
+ |
+ |-- models/
+ |    |-- person.js
+ |
+ |-- views/
+      |-- personlist.js
+      |-- person.js
+```
 
 Let's get started by creating a `router.js` file and set up some simple routes.
 We'll alter our collection view so we can click on names to get a little more
@@ -38,24 +58,21 @@ detail about each name.
 var Marionette = require('backbone.marionette');
 
 
-var controller = {  // 1
+var Controller = Marionette.Object.extend({  // 1
   listNames: function() {  // 2
-    this.app.listNames();
+    this.options.app.listNames();
   },
 
   displayName: function(id) {  // 3
-    var model = this.collection.get(id);
-    this.app.displayName(model);
+    var model = this.options.collection.get(id);
+    this.options.app.displayName(model);
 
   }
-};
+});
 
 var Router = Marionette.AppRouter.extend({
-  controller: controller,  // 4
-
-  initialize: function(options) {  // 5
-    this.app = options.app;
-    this.collection = options.collection;
+  initialize: function(options) {  // 4
+    this.controller = new Controller(options);  // 5
   },
 
   appRoutes: {  // 6
@@ -69,11 +86,11 @@ module.exports = Router;
 
 Let's break down the router and controller at the most interesting points:
 
-  1. We create a basic object to be our `controller`.
+  1. We create a `Marionette.Object` to be our controller.
   2. We name some methods as functions, which we'll use later.
   3. We can specify some arguments that the route can pass in.
-  4. We specify the `controller` to use on the `AppRouter`.
-  5. As with other Backbone and Marionette features, we can pass options.
+  4. As with other Backbone and Marionette features, we can pass options.
+  5. We specify the `controller` to use on the `AppRouter`.
   6. We define our `appRoutes` as a key-value hash of route to method.
 
 ### Using `appRoutes`
@@ -87,6 +104,12 @@ An important consideration for routers is that the routes themselves must not
 run any initialization logic - this must stay in `initialize`. This is because
 the routes are triggered on back/forward which, in fragments, doesn't cause a
 page reload. This would attempt to initialize our app twice!
+
+### What is a `Marionette.Object`?
+
+You'll have noticed we introduced a `Marionette.Object` here. For our purposes
+this behaves like a regular object mixed with the usual Marionette attributes,
+such as automatically attaching options to `this.options`.
 
 ### Carrying on
 
@@ -167,8 +190,7 @@ The changes are as follows:
 
 ### The views
 
-For the purposes of this tutorial, we'll skip over the templates themselves and
-focus on the view handling. Let's start with our list index in
+Let's start with our list index in
 `views/personlist.js`:
 
 ```js
@@ -211,7 +233,9 @@ The `navigate` method is a simple way to update the fragment with the new URL.
 It's important to note that we don't execute any extra code using this. Its only
 purpose is to update the page state so we can either retrieve it, or access it
 with the back/forward buttons on the browser. We could forcibly execute that
-code using `navigate` but it's best not to if we can avoid it.
+code by passing the `{trigger: true}` argument to `navigate` but it's best not
+to if we can avoid it - it leads to a flaky design that's extremely difficult
+to manage.
 
 ### The detail view
 
