@@ -50,32 +50,62 @@ app/
       |-- person.js
 ```
 
-Let's get started by creating a `router.js` file and set up some simple routes.
+## Creating our Router
+
+A key part of refactoring our app will move almost all our logic into our
+controller. This will greatly simplify our application structure and more
+closely follow the MVC principles that Backbone is modelled on.
+
+Let's open our `router.js` file and set up some simple routes.
 We'll alter our collection view so we can click on names to get a little more
 detail about each name.
 
 ```js
 var Marionette = require('backbone.marionette');
 
+var PersonList = require('./collections/person');
+
+var IndexView = require('./views/personlist');
+var PersonView = require('./views/person');
+
 
 var Controller = Marionette.Object.extend({  // 1
-  listNames: function() {  // 2
-    this.options.app.listNames();
+  initialize: function() {  // 2
+    this.regions = new Marionette.RegionManager({
+      regions: {
+        root: '#view-hook'
+      }
+    });
+
+    this.collection = new PersonList(this.options.data);
   },
 
-  displayName: function(id) {  // 3
-    var model = this.options.collection.get(id);
-    this.options.app.displayName(model);
+  listNames: function() {  // 3
+    var view = new IndexView({
+      collection: this.collection,
+      controller: this
+    });
 
+    this.regions.get('root').show(view);  },
+
+  displayName: function(id) {  // 4
+    var model = this.collection.get(id);
+
+    var view = new PersonView({
+      controller: this,
+      model: model
+    });
+
+    this.regions.get('root').show(view);
   }
 });
 
 var Router = Marionette.AppRouter.extend({
-  initialize: function(options) {  // 4
-    this.controller = new Controller(options);  // 5
+  initialize: function(options) {  // 5
+    this.controller = new Controller(options);  // 6
   },
 
-  appRoutes: {  // 6
+  appRoutes: {  // 7
     '': 'listNames',
     'name/:id': 'displayName'
   }
@@ -87,11 +117,16 @@ module.exports = Router;
 Let's break down the router and controller at the most interesting points:
 
   1. We create a `Marionette.Object` to be our controller.
-  2. We name some methods as functions, which we'll use later.
-  3. We can specify some arguments that the route can pass in.
-  4. As with other Backbone and Marionette features, we can pass options.
-  5. We specify the `controller` to use on the `AppRouter`.
-  6. We define our `appRoutes` as a key-value hash of route to method.
+  2. Our new `Object` has an initialize method and sets up the regions.
+  3. We name some methods as functions, which we'll use later.
+  4. We can specify some arguments that the route can pass in.
+  5. As with other Backbone and Marionette features, we can pass options.
+  6. We specify the `controller` to use on the `AppRouter`.
+  7. We define our `appRoutes` as a key-value hash of route to method.
+
+You can see how the bulk of our application initialization has been moved into
+our controller. This gives our controller direct access to everything it needs
+to manage the regions and views of the application.
 
 ### Using `appRoutes`
 
@@ -103,7 +138,8 @@ in the route for `displayName` that will match `name/15`, for example.
 An important consideration for routers is that the routes themselves must not
 run any initialization logic - this must stay in `initialize`. This is because
 the routes are triggered on back/forward which, in fragments, doesn't cause a
-page reload. This would attempt to initialize our app twice!
+page reload. If our page initialization logic were inside the route (and not
+`initialize`) then it would get run whenever that route gets matched!
 
 ### What is a `Marionette.Object`?
 
@@ -119,11 +155,6 @@ creating our views:
 ```js
 require('backbone').$ = require('jquery');
 var Marionette = require('backbone.marionette');
-
-var PersonList = require('./collections/person');
-
-var IndexView = require('./views/personlist');
-var PersonView = require('./views/person');
 
 var Router = require('./router');  // 1
 
@@ -143,43 +174,16 @@ var listData = [
 
 var App = Marionette.Application.extend({
   onStart: function(options) {
-    this.regions = new Marionette.RegionManager({
-      regions: {
-        root: '#view-hook'
-      }
-    });
-
-    this.collection = new PersonList(options.collection);
-
     var router = new Router({
-      app: this,
-      collection: this.collection
+      data: options.data
     });  // 2
 
     Backbone.history.start();  // 3
-  },
-
-  listNames: function() {
-    var view = new IndexView({
-      app: this,
-      collection: this.collection
-    });
-
-    this.regions.get('root').show(view);
-  },
-
-  displayName: function(model) {
-    var view = new PersonView({
-      app: this,
-      model: model
-    });
-
-    this.regions.get('root').show(view);
   }
 });
 
 var app = new App();
-app.start({collection: listData});
+app.start({data: listData});
 ```
 
 The changes are as follows:
@@ -188,10 +192,17 @@ The changes are as follows:
   2. We pass our app into the `router` so we can access views when routing.
   3. We start the `Backbone.history` which will trigger the route-handling.
 
+Our `Application` has now been stripped into a shell that interfaces directly
+with the initializing page and kick-starts the rest of the application. This
+has the effect of isolating most of the application from its operating
+environment. If we wanted to take this a step further, we could expose the
+`Application` through `module.exports` and start it from a separate driver
+file - allowing us to write automated integration tests against our app with
+custom test data.
+
 ### The views
 
-Let's start with our list index in
-`views/personlist.js`:
+We'll now create our list index view `views/personlist.js`:
 
 ```js
 var Marionette = require('backbone.marionette');
@@ -213,8 +224,8 @@ var PersonList = Marionette.CollectionView.extend({
   template: require('../templates/person/list.html'),
 
   onChildviewSelectPerson: function(child, options) {
-    this.options.app.displayName(child.model);  // 1
-    Backbone.history.navigate('name/' + model.id);  // 2
+    Backbone.history.navigate('name/' + model.id);  // 1
+    this.options.controller.displayName(child.model.id);  // 2
   }
 })
 
@@ -224,8 +235,8 @@ module.exports = PersonList;
 
 There are two interesting parts in our `PersonList`:
 
-  1. Since we passed the `app` into our view, we can its methods directly.
-  2. We then navigate to the new URL.
+  1. We then navigate to the new URL.
+  2. We passed the controller into our view so we can call methods on it.
 
 ### What does `Backbone.history.navigate` do?
 
@@ -258,8 +269,8 @@ var PersonView = Marionette.LayoutView.extend({
   },
 
   onClickBack: function() {
-    this.options.app.listNames();
     Backbone.history.navigate('');
+    this.options.controller.listNames();
   }
 });
 
@@ -269,4 +280,14 @@ module.exports = PersonView;
 
 As an aside, you can quickly see the advantages of using the `ui` hash - we
 don't know what exactly `back` looks like in HTML but we can decide that later
-and not worry about having to make lots of niggly fixes later.
+and not worry about having to make lots of little fixes later.
+
+## What next?
+
+Now that we know how to route single-page applications, we can build a fairly
+complex application that handles user input, saves state in the client, and
+can be easily navigated from the location bar in your browser. We can share
+the URLs we generate as if this application were just a web page.
+
+The next major building block is saving and retrieving data
+[from a web server](./servers.md).
