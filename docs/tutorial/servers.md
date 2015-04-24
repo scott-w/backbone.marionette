@@ -235,7 +235,7 @@ var Backbone = require('backbone');
 
 
 var Person = Backbone.Model.extend({
-  urlBase: '/person'
+  urlRoot: '/person'
 });
 
 module.exports = Person;
@@ -262,7 +262,7 @@ var Person = Backbone.Model.extend({
     first_name: '',
     last_name: ''
   }
-  urlBase: '/person'
+  urlRoot: '/person'
 });
 
 module.exports = Person;
@@ -352,7 +352,165 @@ there from the root URL, the page load will be instant! We could even move the
 `model.fetch()` call outside the `if()` block and have our view refreshed with
 the latest data if we think it'll change.
 
-## Saving user data
+## Creating new records
 
-Now let's start recording user-entered data with the server. For this section,
-we'll look at sample template fragments that we could use.
+Let's start by creating new records on the server from our person list. For the
+following sections we'll use a sample template fragment for handling our form
+data that could look something like this:
+
+```html
+<label for="id_first_name">First Name</label>
+<input type="text" name="first_name" class="first_name" id="id_first_name"
+  value="<%- first_name %>" />
+<label for="id_last_name">Last Name</label>
+<input type="text" name="last_name" class="last_name" id="id_last_name"
+  value="<%- last_name %>" />
+<button type="button" class="save">Save</button>
+```
+
+We don't need all the repetition but I want to identify these form elements by
+their class, rather than id.
+
+Now, with this template fragment at the top of our names list, we'll amend our
+`views/personlist.js` to have more visibility on the data:
+
+```js
+var Marionette = require('backbone.marionette');
+
+var Person = require('../models/person');
+
+
+var PersonView = Marionette.LayoutView.extend({
+  tagName: 'li',
+  template: require('../templates/person/item.html'),
+
+  triggers: {
+    'click': 'select:person'
+  }
+});
+
+
+var PersonList = Marionette.CollectionView.extend({
+  childView: PersonView,
+  tagName: 'ul',
+  template: require('../templates/person/list.html'),
+
+  ui: {  // 1
+    first_name: '.first_name',
+    last_name: '.last_name',
+    save: '.save'
+  },
+
+  triggers: {  // 2
+    'click @ui.save': 'create:person'
+  },
+
+  modelEvents: function() {  // 3
+    'sync': 'addPerson'
+  },
+
+  initialize: function() {
+    this.model = new Person();
+  },
+
+  onChildviewSelectPerson: function(child, options) {
+    Backbone.history.navigate('name/' + model.id);  
+    this.options.controller.displayName(child.model.id);  
+  },
+
+  onCreatePerson: function() {
+    this.model.save({  // 4
+      first_name: this.ui.first_name.val(),
+      last_name: this.ui.last_name.val()
+    });
+  },
+
+  addPerson: function() {  // 5
+    this.collection.add(this.model);
+  }
+})
+
+
+module.exports = PersonList;
+```
+
+We have a few things going on at once here, so let's break it down:
+
+  1. We define some new `ui` elements pointing at our form.
+  2. When the user clicks `Save` we want to record the entered data.
+  3. When the data is saved successfully, we want to add it to our list.
+  4. Transfer the data from the form to the model and saves it.
+  5. The model, with an ID field from the server, will be added to our list.
+
+You'll notice that our form hasn't been cleared, and our model will still be
+wired up. We'll need to do a little clean-up here or we'll just be modifying the
+same model forever.
+
+The easiest way, in this application, would be to navigate to the new person,
+effectively forcing the model to be recreated. That's sort of cheating, so let's
+do it the hard way:
+
+```js
+addPerson: function() {
+  this.collection.add(this.model.clone());
+  this.model.clear();
+  this.render();
+}
+```
+
+That wasn't even that hard! The only downside to what we've done here is we've
+actually re-rendered everything, including our list. If we have a long list,
+we've just given the browser a lot of work to do and made our application really
+slow! Without going too much into it, the trick to speeding this up would be
+to refactor a `LayoutView` and store the form in its own `region` and re-render
+just that. I'll leave that as an exercise for the reader.
+
+## Updating existing records
+
+We'll now update our existing records on the server and propagate those changes
+back down. Let's open up our `views/person.js` and have a look. We'll assume
+that our person template uses the template fragment described above:
+
+```js
+var Marionette = require('backbone.marionette');
+
+
+var PersonView = Marionette.LayoutView.extend({
+  template: require('../templates/person/detail.html'),
+
+  ui: {
+    back: '.back',
+    first_name: '.first_name',
+    last_name: '.last_name',
+    save: '.save'
+  },
+
+  triggers: {
+    'click @ui.back': 'click:back',
+    'click @ui.save': 'update:person'
+  },
+
+  modelEvents: {
+    'sync': 'render'
+  },
+
+  onClickBack: function() {
+    Backbone.history.navigate('');
+    this.options.controller.listNames();
+  },
+
+  onUpdatePerson: function() {
+    this.model.save({
+      first_name: this.ui.first_name.val(),
+      last_name: this.ui.last_name.val()
+    });
+  }
+});
+
+
+module.exports = PersonView;
+```
+
+Our code is more-or-less identical. However, since we don't need to add/remove
+items from a collection, it's even simpler than before. Backbone even knows
+when we want to update as opposed to create!
