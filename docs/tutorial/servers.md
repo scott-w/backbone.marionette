@@ -511,6 +511,17 @@ var PersonView = Marionette.LayoutView.extend({
 module.exports = PersonView;
 ```
 
-Our code is more-or-less identical. However, since we don't need to add/remove
-items from a collection, it's even simpler than before. Backbone even knows
-when we want to update as opposed to create!
+Update is more-or-less identical. However, since we don't need to add/remove
+items from a collection, it's even simpler than before. Since the data contains
+an `id` field from the server, Backbone knows to update the model instead of
+creating a new one!
+
+To make our application more powerful, we could render the edit forms in a
+sidebar and any updates on the form models would be reflected back in the
+visible list.
+
+## What next?
+
+You now have all the basic building blocks you need to construct applications
+using Marionette. The next steps are to start building your own apps and extend
+your existing web applications to be more interactive.
