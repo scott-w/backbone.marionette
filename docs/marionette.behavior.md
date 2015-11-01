@@ -158,11 +158,7 @@ This concept also allows for a nice decoupled method to communicate to Behaviors
 
 ```js
 Marionette.Behavior.extend({
-    events: {
-        'click .foo' : 'onClick'
-    },
-
-	onClick: function(data) {
+  onSomeEvent: function(data) {
 		console.log("wow such data", data);
 	}
 });
@@ -224,7 +220,7 @@ Marionette.Behavior.extend({
 ```
 
 ### Grouped Behaviors
-Then `behaviors` key allows a `Behavior` to group multiple behaviors together.
+The `behaviors` key allows a `Behavior` to group multiple behaviors together.
 
 ```js
   Marionette.Behavior.extend({
