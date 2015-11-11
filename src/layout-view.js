@@ -62,15 +62,11 @@ Marionette.LayoutView = Marionette.ItemView.extend({
   },
 
   showChildView: function(regionName, view) {
-    return this.getRegion(regionName).show(view);
+    return this._getRegionOrError(regionName).show(view);
   },
 
   getChildView: function(regionName) {
-    var region = this.getRegion(regionName);
-    if (_.isUndefined(region)) {
-      throw new Marionette.Error('Region "' + regionName + '" was not found on this view.');
-    }
-    return region.currentView;
+    return this._getRegionOrError(regionName).currentView;
   },
 
   // Add a single region, by name, to the layoutView
@@ -180,5 +176,13 @@ Marionette.LayoutView = Marionette.ItemView.extend({
       .pluck('currentView')
       .compact()
       .value();
+  },
+
+  _getRegionOrError: function(regionName) {
+    var region = this.getRegion(regionName);
+    if (_.isUndefined(region)) {
+      throw new Marionette.Error('Region "' + regionName + '" was not found on this view.');
+    }
+    return region;
   }
 });

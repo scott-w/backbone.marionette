@@ -420,6 +420,21 @@ describe('layoutView', function() {
     });
   });
 
+  describe('when showing a child view for a region that does not exist', function() {
+    beforeEach(function() {
+      this.layoutView = new this.LayoutView();
+      this.layoutView.render();
+      this.view = new this.LayoutView();
+    });
+
+    it('should throw an error', function() {
+      var showChildView = _.partial(this.layoutView.showChildView, 'noRegion', this.view);
+
+      expect(showChildView.bind(this.layoutView)).to.throw(
+        'Region "noRegion" was not found on this view.');
+    });
+  });
+
   describe('has a valid inheritance chain back to Marionette.View', function() {
     beforeEach(function() {
       this.constructor = this.sinon.spy(Marionette, 'View');
