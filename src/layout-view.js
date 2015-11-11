@@ -66,7 +66,11 @@ Marionette.LayoutView = Marionette.ItemView.extend({
   },
 
   getChildView: function(regionName) {
-    return this.getRegion(regionName).currentView;
+    var region = this.getRegion(regionName);
+    if (_.isUndefined(region)) {
+      throw new Marionette.Error('Region "' + regionName + '" was not found on this view.');
+    }
+    return region.currentView;
   },
 
   // Add a single region, by name, to the layoutView
