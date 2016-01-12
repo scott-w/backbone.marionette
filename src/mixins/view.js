@@ -36,7 +36,7 @@ export default {
   // literal. All methods and attributes from this object
   // are copies to the object passed in.
   mixinTemplateContext: function(target = {}) {
-    var templateContext = this.getValue(this.getOption('templateContext'));
+    const templateContext = this.getValue(this.getOption('templateContext'));
     return _.extend(target, templateContext);
   },
 
@@ -47,13 +47,13 @@ export default {
     this._proxyBehaviorViewProperties();
     this._buildEventProxies();
 
-    var viewEvents = this._getEvents(eventsArg);
+    const viewEvents = this._getEvents(eventsArg);
 
     if (typeof eventsArg === 'undefined') {
       this.events = viewEvents;
     }
 
-    var combinedEvents = _.extend({},
+    const combinedEvents = _.extend({},
       this._getBehaviorEvents(),
       viewEvents,
       this._getBehaviorTriggers(),
@@ -66,7 +66,7 @@ export default {
   },
 
   _getEvents: function(eventsArg) {
-    var events = this.getValue(eventsArg || this.events);
+    const events = this.getValue(eventsArg || this.events);
 
     return this.normalizeUIKeys(events);
   },
@@ -77,7 +77,7 @@ export default {
     if (!this.triggers) { return; }
 
     // Allow `triggers` to be configured as a function
-    var triggers = this.normalizeUIKeys(_.result(this, 'triggers'));
+    const triggers = this.normalizeUIKeys(_.result(this, 'triggers'));
 
     // Configure the triggers, prevent default
     // action and stop propagation of DOM events
@@ -114,10 +114,10 @@ export default {
 
   // Handle `modelEvents`, and `collectionEvents` configuration
   delegateEntityEvents: function() {
-    var modelEvents = this.getValue(this.getOption('modelEvents'));
+    const modelEvents = this.getValue(this.getOption('modelEvents'));
     this.bindEntityEvents(this.model, modelEvents);
 
-    var collectionEvents = this.getValue(this.getOption('collectionEvents'));
+    const collectionEvents = this.getValue(this.getOption('collectionEvents'));
     this.bindEntityEvents(this.collection, collectionEvents);
 
     // bind each behaviors model and collection events
@@ -128,10 +128,10 @@ export default {
 
   // Handle unbinding `modelEvents`, and `collectionEvents` configuration
   undelegateEntityEvents: function() {
-    var modelEvents = this.getValue(this.getOption('modelEvents'));
+    const modelEvents = this.getValue(this.getOption('modelEvents'));
     this.unbindEntityEvents(this.model, modelEvents);
 
-    var collectionEvents = this.getValue(this.getOption('collectionEvents'));
+    const collectionEvents = this.getValue(this.getOption('collectionEvents'));
     this.unbindEntityEvents(this.collection, collectionEvents);
 
     // unbind each behaviors model and collection events
@@ -153,12 +153,12 @@ export default {
   // Handle destroying the view and its children.
   destroy: function(...args) {
     if (this._isDestroyed) { return this; }
+    const shouldTriggerDetach = !!this._isAttached;
 
     this.triggerMethod('before:destroy', ...args);
-
-    // update lifecycle flags
-    this._isDestroyed = true;
-    this._isRendered = false;
+    if (shouldTriggerDetach) {
+      this.triggerMethod('before:detach', this);
+    }
 
     // unbind UI elements
     this.unbindUIElements();
@@ -167,11 +167,18 @@ export default {
     // https://github.com/jashkenas/backbone/blob/1.2.3/backbone.js#L1235
     this._removeElement();
 
+    if (shouldTriggerDetach) {
+      this._isAttached = false;
+      this.triggerMethod('detach', this);
+    }
+
     // remove children after the remove to prevent extra paints
     this._removeChildren();
 
     this._destroyBehaviors(args);
 
+    this._isDestroyed = true;
+    this._isRendered = false;
     this.triggerMethod('destroy', ...args);
 
     this.stopListening();
@@ -206,7 +213,7 @@ export default {
   // import the `triggerMethod` to trigger events with corresponding
   // methods if the method exists
   triggerMethod: function(...args) {
-    var ret = triggerMethod.apply(this, args);
+    const ret = triggerMethod.apply(this, args);
 
     this._triggerEventOnBehaviors(...args);
     this._triggerEventOnParentLayout(...args);
@@ -217,31 +224,30 @@ export default {
   // Cache `childViewEvents` and `childViewTriggers`
   _buildEventProxies: function() {
     this._childViewEvents = this.getValue(this.getOption('childViewEvents'));
-
     this._childViewTriggers = this.getValue(this.getOption('childViewTriggers'));
   },
 
   _triggerEventOnParentLayout: function(eventName, ...args) {
-    var layoutView = this._parentView();
+    const layoutView = this._parentView();
     if (!layoutView) {
       return;
     }
 
     // invoke triggerMethod on parent view
-    var eventPrefix = layoutView.getOption('childViewEventPrefix');
-    var prefixedEventName = eventPrefix + ':' + eventName;
+    const eventPrefix = layoutView.getOption('childViewEventPrefix');
+    const prefixedEventName = eventPrefix + ':' + eventName;
 
     layoutView.triggerMethod(prefixedEventName, ...args);
 
     // use the parent view's childViewEvents handler
-    var childViewEvents = layoutView.normalizeMethods(layoutView._childViewEvents);
+    const childViewEvents = layoutView.normalizeMethods(layoutView._childViewEvents);
 
     if (!!childViewEvents && _.isFunction(childViewEvents[eventName])) {
       childViewEvents[eventName].apply(layoutView, args);
     }
 
     // use the parent view's proxyEvent handlers
-    var childViewTriggers = layoutView._childViewTriggers;
+    const childViewTriggers = layoutView._childViewTriggers;
 
     // Call the event with the proxy name on the parent layout
     if (childViewTriggers && _.isString(childViewTriggers[eventName])) {
@@ -252,7 +258,7 @@ export default {
   // Walk the _parent tree until we find a view (if one exists).
   // Returns the parent view hierarchically closest to this view.
   _parentView: function() {
-    var parent  = this._parent;
+    let parent = this._parent;
 
     while (parent) {
       if (parent instanceof View) {

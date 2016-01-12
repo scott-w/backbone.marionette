@@ -70,12 +70,12 @@ export default {
     _.invoke(this._behaviors, 'undelegateEntityEvents');
   },
 
-  _destroyBehaviors: function(args) {
+  _destroyBehaviors: function(options) {
     // Call destroy on each behavior after
     // destroying the view.
     // This unbinds event listeners
     // that behaviors have registered for.
-    _.invoke(this._behaviors, 'destroy', args);
+    _.invoke(this._behaviors, 'destroy', options);
   },
 
   _bindBehaviorUIElements: function() {
