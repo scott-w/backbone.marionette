@@ -20,8 +20,8 @@ behaviors that are shared across all views.
 * [View "attach" / onAttach event](#view-attach--onattach-event)
 * [View "before:attach" / onBeforeAttach event](#view-beforeattach--onbeforeattach-event)
 * [View "dom:refresh" / onDomRefresh event](#view-domrefresh--ondomrefresh-event)
-* [View.triggers](#viewtriggers)
 * [View.events](#viewevents)
+* [View.triggers](#viewtriggers)
 * [View.modelEvents and View.collectionEvents](#viewmodelevents-and-viewcollectionevents)
 * [View.serializeModel](#viewserializemodel)
 * [View.bindUIElements](#viewbinduielements)
@@ -90,8 +90,8 @@ var LayoutView = Marionette.LayoutView.extend({
      Section: 'section'
    },
    onShow: function() {
-      this.Header.show(new Header());
-      this.Section.show(new Section());
+      this.showChildView('Header', new Header());
+      this.showChildView('Section', new Section());
    }
 });
 ```

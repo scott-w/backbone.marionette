@@ -288,16 +288,67 @@ describe('layoutView', function() {
     });
   });
 
-  describe('when showing a childView', function() {
+  describe('when showing a childView as a basic Backbone.View', function() {
     beforeEach(function() {
       this.layoutView = new this.LayoutView();
       this.layoutView.render();
+
+      // create a basic Backbone child view
       this.childView = new Backbone.View();
       this.layoutView.showChildView('regionOne', this.childView);
     });
 
     it('shows the childview in the region', function() {
       expect(this.layoutView.getChildView('regionOne')).to.equal(this.childView);
+    });
+  });
+
+  describe('when showing a childView as a ItemView', function() {
+    beforeEach(function() {
+      this.layoutView = new this.LayoutView();
+      this.childEventsHandler = this.sinon.spy();
+
+      // add child events to listen for
+      this.layoutView.childEvents = {
+        'content:rendered': this.childEventsHandler
+      };
+      this.layoutView.render();
+
+      // create a child view which triggers an event on render
+      var ChildView = Backbone.Marionette.ItemView.extend({
+        template: false,
+        onRender: function() {
+          this.triggerMethod('content:rendered');
+        }
+      });
+      this.childView = new ChildView();
+
+      this.layoutView.showChildView('regionOne', this.childView);
+    });
+
+    it('shows the childview in the region', function() {
+      expect(this.layoutView.getChildView('regionOne')).to.equal(this.childView);
+    });
+
+    it('childEvents are triggered', function() {
+      expect(this.childEventsHandler).to.have.been.calledOnce;
+    });
+  });
+
+  describe('when using showChildView with options', function() {
+    var options = {myOption: 'some value'};
+
+    beforeEach(function() {
+      this.layoutView = new this.LayoutView().render();
+      this.childView = new Backbone.View();
+      this.sinon.spy(this.layoutView.regionOne, 'show');
+      this.layoutView.showChildView('regionOne', this.childView, options);
+    });
+
+    it('passes the options hash to the region', function() {
+      expect(this.layoutView.regionOne.show)
+        .to.have.been.calledOnce
+        .and.calledWith(this.childView, options);
     });
   });
 

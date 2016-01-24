@@ -74,17 +74,17 @@ Once you've rendered the layoutView, you now have direct access
 to all of the specified regions as region managers.
 
 ```js
-layoutView.getRegion('menu').show(new MenuView());
+layoutView.getRegion('menu').show(new MenuView(), options);
 
-layoutView.getRegion('content').show(new MainContentView());
+layoutView.getRegion('content').show(new MainContentView(), options);
 ```
 
 There are also helpful shortcuts for more concise syntax.
 
 ```js
-layoutView.showChildView('menu', new MenuView());
+layoutView.showChildView('menu', new MenuView(), options);
 
-layoutView.showChildView('content', new MainContentView());
+layoutView.showChildView('content', new MainContentView(), options);
 ```
 
 ### Region Options
@@ -124,7 +124,7 @@ var MyLayoutView = Marionette.LayoutView.extend({
 
   childEvents: function() {
     return {
-      render: this.onChildRender
+      render: this.onChildRendered
     }
   },
 
@@ -166,7 +166,8 @@ var ParentView = Marionette.LayoutView.extend({
   onChildShowMessage: function (childView, message) {
     console.log('A child view fired show:message with ' + message);
   },
-
+  // Methods called from the triggers hash do not have access to DOM events
+  // Any logic requiring the original DOM event should be handled in it's respective view
   onChildSubmitForm: function (childView) {
     console.log('A child view fired submit:form');
   }
@@ -293,7 +294,7 @@ var layoutView = new Marionette.LayoutView({
 });
 
 // Lastly, show the LayoutView in the App's mainRegion
-MyApp.getRegion('main').show(layoutView);
+MyApp.rootView.getRegion('main').show(layoutView, options);
 ```
 
 You can nest LayoutViews as deeply as you want. This provides for a well organized,
@@ -306,7 +307,7 @@ var layout1 = new Layout1();
 var layout2 = new Layout2();
 var layout3 = new Layout3();
 
-MyApp.getRegion('main').show(layout1);
+MyApp.rootView.getRegion('main').show(layout1, options);
 
 layout1.showChildView('region1', layout2);
 layout2.showChildView('region2', layout3);
@@ -326,7 +327,7 @@ var ParentLayout = Marionette.LayoutView.extend({
   }
 });
 
-myRegion.show(new ParentLayout());
+myRegion.show(new ParentLayout(), options);
 ```
 
 In this example, the doubly-nested view structure will be rendered in a single paint.
@@ -414,7 +415,7 @@ var layoutView = new MyLayoutView();
 // ...
 
 layoutView.addRegion("foo", "#foo");
-layoutView.getRegion('foo').show(new someView());
+layoutView.getRegion('foo').show(new someView(), options);
 ```
 
 addRegions:

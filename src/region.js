@@ -66,7 +66,7 @@ Marionette.Region = Marionette.Object.extend({
       this.triggerMethod('before:swapOut', this.currentView, this, options);
     }
 
-    if (this.currentView) {
+    if (this.currentView && isDifferentView) {
       delete this.currentView._parent;
     }
 
@@ -89,9 +89,12 @@ Marionette.Region = Marionette.Object.extend({
       // we can not reuse it.
       view.once('destroy', this.empty, this);
 
-      this._renderView(view);
-
+      // make this region the view's parent,
+      // It's important that this parent binding happens before rendering
+      // so that any events the child may trigger during render can also be
+      // triggered on the child's ancestor views
       view._parent = this;
+      this._renderView(view);
 
       if (isChangingView) {
         this.triggerMethod('before:swap', view, this, options);
@@ -223,7 +226,7 @@ Marionette.Region = Marionette.Object.extend({
     var preventDestroy  = !!emptyOptions.preventDestroy;
     // If there is no view in the region
     // we should not remove anything
-    if (!view) { return; }
+    if (!view) { return this; }
 
     view.off('destroy', this.empty, this);
     this.triggerMethod('before:empty', view);

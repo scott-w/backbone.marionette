@@ -304,6 +304,10 @@ Marionette.View = Backbone.View.extend({
 
     // call the parent view's childEvents handler
     var childEvents = Marionette.getOption(layoutView, 'childEvents');
+
+    // since childEvents can be an object or a function use Marionette._getValue
+    // to handle the abstaction for us.
+    childEvents = Marionette._getValue(childEvents, layoutView);
     var normalizedChildEvents = layoutView.normalizeMethods(childEvents);
 
     if (normalizedChildEvents && _.isFunction(normalizedChildEvents[eventName])) {
@@ -329,26 +333,17 @@ Marionette.View = Backbone.View.extend({
     }, children);
   },
 
-  // Internal utility for building an ancestor
-  // view tree list.
-  _getAncestors: function() {
-    var ancestors = [];
+  // Walk the _parent tree until we find a layout view (if one exists).
+  // Returns the parent layout view hierarchically closest to this view.
+  _parentLayoutView: function() {
     var parent  = this._parent;
 
     while (parent) {
-      ancestors.push(parent);
+      if (parent instanceof Marionette.LayoutView) {
+        return parent;
+      }
       parent = parent._parent;
     }
-
-    return ancestors;
-  },
-
-  // Returns the containing parent view.
-  _parentLayoutView: function() {
-    var ancestors = this._getAncestors();
-    return _.find(ancestors, function(parent) {
-      return parent instanceof Marionette.LayoutView;
-    });
   },
 
   // Imports the "normalizeMethods" to transform hashes of
