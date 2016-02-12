@@ -12,8 +12,6 @@ import UIMixin from './ui';
 import View from '../view';
 import { triggerMethod } from '../trigger-method';
 
-
-
 var ViewMixin = {
 
   supportsRenderLifecycle: true,
