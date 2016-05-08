@@ -79,7 +79,7 @@ describe('region', function() {
         it('should throw an exception saying an "el" doesnt exist in DOM', function() {
           expect(function() {
             this.region.show(new this.MyView());
-          }.bind(this)).to.throw('An "el" #not-existed-region must exist in DOM');
+          }.bind(this)).to.throw('An "el" must exist in DOM for this region ' + this.region.cid);
         });
 
         it('should not have a view', function() {
@@ -239,7 +239,7 @@ describe('region', function() {
       beforeEach(function() {
         this.MyRegion = Backbone.Marionette.Region.extend({
           el: '#region',
-          onShow: function() {},
+          onShow: function() {}
         });
 
         this.MyView2 = Backbone.View.extend({
@@ -1042,6 +1042,28 @@ describe('region', function() {
 
     it('should call "render" on the view', function() {
       expect(this.view.render).to.have.been.calledOnce;
+    });
+  });
+
+  describe('when calling "_ensureElement"', function() {
+    beforeEach(function() {
+      this.region = new Backbone.Marionette.Region({
+        el: '#region'
+      });
+    });
+
+    it('should prefer passed options over initial options', function() {
+      this.region.options.allowMissingEl = false;
+
+      expect(this.region._ensureElement({allowMissingEl: true})).to.be.false;
+    });
+
+    it('should fallback to initial options when not passed options', function() {
+      this.region.options.allowMissingEl = false;
+
+      expect(function() {
+        this.region._ensureElement();
+      }.bind(this)).to.throw;
     });
   });
 });
