@@ -99,6 +99,9 @@ When you're submitting a bug fix, include spec tests, where applicable, showing
 the issue and the resolution. We strive to maintain 100% code coverage in our
 testing.
 
+You don't need to include any changes to files in `lib/` as we will build this
+as part of our release process.
+
 #### Coding Guidelines
 
 The Marionette coding conventions are provided in the ESLint configuration
@@ -128,3 +131,35 @@ to discuss further.
 * in the browser by running `npm run test-browser`
 
 To see the test matrix - run `npm run coverage`
+
+## Our Release Process
+
+Our releases follow the common semantic versioning practices. This will detail
+the rough process that we follow so you can get an idea of how and when you can
+expect your changes to make it into a Marionette release.
+
+We run two separate development branches: `master` and `next` representing the
+current patch version and the next planning major/minor version respectively.
+
+### Releasing Patches
+
+To demonstrate this, this process uses a hypothetical release `3.0.4`.
+
+1. Branch the current state of `master` into the next patch increment `3.0.4`
+2. Release the patch version `3.0.4`
+3. Continue development of patch versions on `master`
+
+### Releasing Minor Versions
+
+To demonstrate this, we use a hypothetical release `3.1.0`.
+
+1. If necessary, release the state of `master` as a [patch](#releasing-patches)
+2. Merge `next` onto `master`
+3. Branch the new `master` into `3.1.0`
+4. Release the minor version `3.1.0`
+5. Continue patch development on `master`
+6. Continue feature development on `next`
+
+### Release Major Versions
+
+To demonstrate this, we use a hypothetical release `4.0.0`.
