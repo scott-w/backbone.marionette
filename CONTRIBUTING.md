@@ -87,6 +87,9 @@ When submitting your pull request, you need to determine whether to base off
 * If you're submitting documentation for a new feature, base off `next`
 * If you're submitting documentation for the current release, base off `master`
 
+If you're still unsure which branch to request against, base off `next`. If we
+need you to change it, we'll just ask.
+
 ### Submitting a Great Patch
 
 We want Marionette to provide a great experience to developers and help you
@@ -107,6 +110,7 @@ as part of our release process.
 The Marionette coding conventions are provided in the ESLint configuration
 included in the repository. Most IDEs and text editors will provide, or allow
 for, a plugin for ESLint to read the `.eslintrc` file.
+
 For areas where the configuration provides no guidance, try to stick to the
 conventions in the file you're editing.
 
@@ -127,10 +131,9 @@ to discuss further.
 
 ## Running Tests
 
-* via command-line by running `npm test`
-* in the browser by running `npm run test-browser`
-
-To see the test matrix - run `npm run coverage`
+* Command line: `npm test`
+* In-browser: `npm run test-browser`
+* Test matrix: `npm run coverage`
 
 ## Our Release Process
 
@@ -140,6 +143,8 @@ expect your changes to make it into a Marionette release.
 
 We run two separate development branches: `master` and `next` representing the
 current patch version and the next planning major/minor version respectively.
+
+The release process is most easily explained by example.
 
 ### Releasing Patches
 
